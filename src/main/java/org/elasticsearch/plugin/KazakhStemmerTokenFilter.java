@@ -14,11 +14,6 @@ import java.util.regex.Pattern;
 
 public class KazakhStemmerTokenFilter extends TokenFilter {
 
-    /**
-     * Construct a token stream filtering the given input.
-     *
-     * @param input
-     */
     public KazakhStemmerTokenFilter(TokenStream input) {
         super(input);
     }
@@ -43,25 +38,24 @@ public class KazakhStemmerTokenFilter extends TokenFilter {
     // Оставлю, если нужно будет вернуть логгирование зачем-нибудь
     // private final static Logger LOGGER = LogManager.getLogger(KazakhStemmerTokenFilter.class);
 
-    public static String stem(String word)
-    {
-        // don't change short words
-        if (word.length() <= PROCESSING_MINIMAL_WORD_LENGTH || !continueStemming(word)) return word;
-
-        // try simple trim
-        for (int i = 0; i < suffixes.length; i++) {
-            String suffix = suffixes[i];
-
-            if (word.endsWith(suffix)) {
-
-                String trimmed = word.substring(0, word.length() - suffix.length());
-                return stem(trimmed);
+    public static String stem(String word) {
+        StringBuilder sb = new StringBuilder(word);
+        boolean repeat = true;
+        while (repeat && sb.length() > PROCESSING_MINIMAL_WORD_LENGTH && continueStemming(sb.toString())) {
+            repeat = false;
+            for (String suffix : suffixes) {
+                if (sb.toString().endsWith(suffix)) {
+                    sb.delete(sb.length() - suffix.length(), sb.length());
+                    repeat = true;
+                    break;
+                }
             }
         }
-        return word;
+
+        return sb.toString();
     }
 
-    private static Pattern _vowelChars = Pattern.compile("[аәоөұүыіеиуёэюя]");
+    private static final Pattern _vowelChars = Pattern.compile("[аәоөұүыіеиуёэюя]");
 
     public static boolean continueStemming(String word) {
         Matcher matcher = _vowelChars.matcher(word);
@@ -71,12 +65,12 @@ public class KazakhStemmerTokenFilter extends TokenFilter {
 
     // окончания расставлены в массиве так, чтобы сначала отсекались наиболее длинное сочетание букв
     // была проблема с кодировкой этих текстов, но проставление метки в gradle.build с явной кодировкой UTF-8 помогает
-    private static String suffixes[] = {
+    private static final String[] suffixes = {
             //"сыңдар", "сіңдер","ңыздар", "ңіздер","сыздар", "сіздер",
 
-            "шалық", "шелік", "даған", "деген", "таған", "теген", "лаған", "леген","дайын", "дейін", "тайын", "тейін",
+            "шалық", "шелік", "даған", "деген", "таған", "теген", "лаған", "леген", "дайын", "дейін", "тайын", "тейін",
 
-            "ңдар", "ңдер", "дікі", "тікі", "нікі", "атын", "етін","йтын", "йтін",
+            "ңдар", "ңдер", "дікі", "тікі", "нікі", "атын", "етін", "йтын", "йтін",
             "гелі", "қалы", "келі", "ғалы", "шама", "шеме",
 
             "мын", "мін", "бын", "бін", "пын", "пін", "мыз", "міз", "быз", "біз", "пыз", "піз", "сың", "сің",
