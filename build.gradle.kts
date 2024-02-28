@@ -78,27 +78,3 @@ tasks.register("deb", com.netflix.gradle.plugins.deb.Deb::class) {
     from(zipTree(tasks["bundlePlugin"].outputs.files.singleFile))
     into("/usr/share/elasticsearch/plugins/$pluginName")
 }
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            from(components["java"])
-            artifact(tasks.named("deb"))
-        }
-    }
-    repositories {
-        maven {
-            name = "GitLab"
-            url = uri("https://gitlab.com/api/v4/projects/3351/packages/maven")
-            val gitlabToken = project.properties["gitlabToken"]?.toString()
-                ?: System.getenv("CI_JOB_TOKEN")
-            credentials(HttpHeaderCredentials::class) {
-                name = "Job-Token"
-                value = gitlabToken
-            }
-            authentication {
-                create<HttpHeaderAuthentication>("header")
-            }
-        }
-    }
-}
